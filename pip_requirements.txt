@@ -1,0 +1,8 @@
+# 以下为可选包，根据使用到的模块所需要依赖包
+# paramiko
+# requests
+# PyMySQL
+# pymongo
+# psycopg2-binary
+# redis
+# rediscluster
