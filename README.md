@@ -1,5 +1,8 @@
 # SHTools - some useful bash tools write in pure python.
 
+[![image](https://img.shields.io/pypi/v/shtools.svg)](https://pypi.org/project/shtools/)
+[![image](https://img.shields.io/pypi/l/shtools.svg)](https://pypi.org/project/shtools/)
+
 ## About
 纯Python实现的一些bash命令工具集合.
 
