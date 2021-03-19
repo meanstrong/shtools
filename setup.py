@@ -13,7 +13,6 @@ setup(
     name="shtools",
     version=shtools.__version__,
     packages=find_packages(exclude=["test*"]),
-    # install_requires=["paramiko"],
     zip_safe=False,
 
     url="https://github.com/meanstrong/shtools",
