@@ -14,7 +14,15 @@ setup(
     version=shtools.__version__,
     packages=find_packages(exclude=["test*"]),
     zip_safe=False,
-
+    extras_require={
+        "curl": ["requests"],
+        "mongo": ["pymongo"],
+        "mysql": ["pymysql"],
+        "psql": ["psycopg2"],
+        "rediscli": ["redis", "rediscluster"],
+        "scp": ["paramiko"],
+        "ssh": ["paramiko"],
+    },
     url="https://github.com/meanstrong/shtools",
     description="some useful bash tools write in python",
     long_description=readme,
