@@ -36,6 +36,11 @@ python setup.py install
 ## Example
 ```python
 from shtools.bash.mysql import mysql
+
+# print help
+mysql.print_help()
+
+# run
 cmd = mysql('-h 127.0.0.1 -P 3306 -u root -p ****** -D database -e "SELECT * FROM table"')
 result = cmd.run()
 ```
