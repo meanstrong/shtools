@@ -1,0 +1,15 @@
+*.log
+*.egg-info/
+dist
+.env/
+*.pyc
+/.idea/
+*.pyo
+__pycache__
+*.log
+/logs/
+*.bak
+test*
+
+*.json
+*.pem
