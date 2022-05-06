@@ -5,28 +5,49 @@ import struct
 import time
 from optparse import OptionParser
 
-from .bash import Bash
+from .abstract_cmd import AbstractCmd
+
+__all__ = ["ntpdate"]
+
+parser = OptionParser(usage="ntpdate [options...] <server>")
+parser.add_option(
+    "-t",
+    action="store",
+    type="int",
+    dest="timeout",
+    default=1,
+    help="Specify the maximum time waiting for a server response as the value timeout, in seconds and fraction. The value is is rounded to a multiple of 0.2 seconds. The default is 1 second, a value suitable for polling across a LAN.",
+)
+parser.add_option(
+    "-u",
+    action="store_true",
+    dest="unprivileged",
+    default=False,
+    help="Direct  ntpdate to use an unprivileged port for outgoing packets. This is most useful when behind a firewall that blocks incoming traffic to privileged ports, and you want to synchronize with hosts beyond the firewall. Note that the -d option always uses unprivileged ports.",
+)
 
 
-class Ntpdate(Bash):
-    def get_parser(self):
-        parser = OptionParser(usage="ntpdate [options...] <server>")
-        parser.add_option(
-            "-t",
-            action="store",
-            type="int",
-            dest="timeout",
-            default=1,
-            help="Specify the maximum time waiting for a server response as the value timeout, in seconds and fraction. The value is is rounded to a multiple of 0.2 seconds. The default is 1 second, a value suitable for polling across a LAN.",
-        )
-        parser.add_option(
-            "-u",
-            action="store_true",
-            dest="unprivileged",
-            default=False,
-            help="Direct  ntpdate to use an unprivileged port for outgoing packets. This is most useful when behind a firewall that blocks incoming traffic to privileged ports, and you want to synchronize with hosts beyond the firewall. Note that the -d option always uses unprivileged ports.",
-        )
-        return parser
+class Result(object):
+    def __init__(self, success: bool, reason: str = "", offset: float = 0):
+        self._success = success
+        self._reason = reason
+        self._offset = offset
+
+    @property
+    def success(self):
+        return self._success
+
+    @property
+    def reason(self):
+        return self._reason
+
+    @property
+    def offset(self):
+        return self._offset
+
+
+class ntpdate(AbstractCmd):
+    __option_parser__ = parser
 
     def run(self):
         ntp_server = self.args[0]
@@ -60,9 +81,7 @@ class Ntpdate(Bash):
         try:
             resp, addr = sock.recvfrom(512)
         except socket.timeout:
-            self.logger.exception("socket read timeout.")
-            # return {"success": False, "msg": "no server suitable for synchronization found"}
-            raise
+            return Result(success=False, reason="no server suitable for synchronization found")
         # 包到达的时间
         t4 = time.time()
         # 解包 这里LI VN Mode Stratum 等放到了一个64bit 的里面，所有格式和上面的打包不同
@@ -70,10 +89,9 @@ class Ntpdate(Bash):
         # Mode 是 4 是服务器返回标志
         if vi == vi | 4 << 56:
             # 64bit 1900年时间转普通时间
-            receTime = receTime / (2 ** 32) - time1990_1970
-            tranTime = tranTime / (2 ** 32) - time1990_1970
+            receTime = receTime / (2**32) - time1990_1970
+            tranTime = tranTime / (2**32) - time1990_1970
             t4 += ((receTime - t1) + (tranTime - t4)) / 2
             offset = time.time() - t4
         sock.close()
-        # stdout = "adjust time server {} offset {:.6f} sec".format(self.args[0], offset)
-        return dict(offset=offset)
+        return Result(success=True, offset=offset)

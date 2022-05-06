@@ -3,6 +3,9 @@
 
 # CommandLineToArgvW
 class CmdLine(object):
+    
+    # Implementation reference:
+    # https://github.com/nelyom/cmdLineTokenizer/blob/master/cmdLineTokenizer/Tokenizer.cs#L19-L93
     @staticmethod
     def to_list(commandLine):
         tokens = []

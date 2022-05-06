@@ -79,6 +79,7 @@
 """
 
 __version__ = "0.1"
+__all__ = ["ping"]
 
 
 import os
@@ -88,7 +89,7 @@ import struct
 import time
 from optparse import OptionParser
 
-from .bash import Bash
+from .abstract_cmd import AbstractCmd
 
 # logging.basicConfig(level=logging.DEBUG,
 #                 format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -270,50 +271,60 @@ def ping(dest_addr, timeout=2, count=4):
     return response_num
 
 
-class Ping(Bash):
-    def get_parser(self):
-        parser = OptionParser(usage="ping [options...] <destination>")
-        parser.add_option(
-            "-c",
-            action="store",
-            type="int",
-            dest="count",
-            default=5,
-            help="Stop after sending count ECHO_REQUEST packets.",
-        )
-        parser.add_option("-v", action="store_true", dest="verbose", default=False, help="Verbose output.")
-        parser.add_option(
-            "-W", action="store", type="int", dest="timeout", default=5, help="Time to wait for a response, in seconds."
-        )
-        return parser
+parser = OptionParser(usage="ping [options...] <destination>")
+parser.add_option(
+    "-c", action="store", type="int", dest="count", default=5, help="Stop after sending count ECHO_REQUEST packets."
+)
+parser.add_option("-v", action="store_true", dest="verbose", default=False, help="Verbose output.")
+parser.add_option(
+    "-W", action="store", type="int", dest="timeout", default=5, help="Time to wait for a response, in seconds."
+)
+
+
+class Result(object):
+    def __init__(self, sent: int, received: int, packet_loss: float):
+        self._sent = sent
+        self._received = received
+        self._packet_loss = packet_loss
+
+    @property
+    def sent(self):
+        return self._sent
+
+    @property
+    def received(self):
+        return self._received
+
+    @property
+    def packet_loss(self):
+        return self._packet_loss
+
+
+class ping(AbstractCmd):
+    __option_parser__ = parser
 
     def run(self):
         dest_addr = self.args[0]
         timeout = self.options.timeout
-        count = self.options.count
+        sent = self.options.count
 
-        response_num = 0
-        for i in range(count):
+        received = 0
+        for i in range(sent):
             try:
                 delay = do_one(dest_addr, timeout)
             except socket.gaierror as e:
-                self.logger.warn("ping %s...failed. (socket error: '%s')" % (dest_addr, str(e)))
                 continue
             except socket.error as e:
-                self.logger.warn("ping %s...failed. (socket error: '%s')" % (dest_addr, str(e)))
                 continue
 
-            if delay is None:
-                self.logger.warn("ping %s...failed. (timeout within %ssec.)" % (dest_addr, timeout))
-            else:
+            if delay is not None:
                 delay = delay * 1000
-                self.logger.debug("ping %s...OK. (get ping in %0.4fms.)" % (dest_addr, delay))
-                response_num += 1
+                received += 1
 
-        loss = count - response_num
-        loss_rate = 100 * loss / count
+        loss = sent - received
+        packet_loss = 100 * loss / sent
 
-        return dict(sent=count, received=response_num, packet_loss=loss_rate)
+        return Result(sent=sent, received=received, packet_loss=packet_loss)
 
 
 if __name__ == "__main__":

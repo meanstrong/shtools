@@ -3,35 +3,38 @@ from optparse import OptionParser
 
 import paramiko
 
-from .ssh import Ssh
+from .ssh import ssh
+from shtools.utils.cmdline import CmdLine
+
+__all__ = ["scp"]
+
+parser = OptionParser(usage="scp [options...] [[user@]host1:]file1 [[user@]host2:]file2")
+parser.add_option(
+    "-P",
+    action="store",
+    type="int",
+    dest="port",
+    default=22,
+    help="Specifies the port to connect to on the remote host.",
+)
+parser.add_option(
+    "--password",
+    action="store",
+    type="string",
+    dest="password",
+    default=None,
+    help="Specifies the password to connect to on the remote host.",
+)
 
 
-class Scp(Ssh):
-    def get_parser(self):
-        parser = OptionParser(usage="scp [options...] [[user@]host1:]file1 [[user@]host2:]file2")
-        parser.add_option(
-            "-P",
-            action="store",
-            type="int",
-            dest="port",
-            default=22,
-            help="Specifies the port to connect to on the remote host.",
-        )
-        parser.add_option(
-            "--password",
-            action="store",
-            type="string",
-            dest="password",
-            default=None,
-            help="Specifies the password to connect to on the remote host.",
-        )
-        return parser
+class scp(ssh):
+    __option_parser__ = parser
 
-    def parse_args(self, args):
-        options, args = self.parser.parse_args(args)
+    def _cmdline_parse(self, cmdline):
+        options, args = self.__option_parser__.parse_args(CmdLine.to_list(cmdline))
 
-        if len(args) != 2:
-            raise Exception("usage: scp [options] src dst.")
+        if len(args) != 2 or sum([1 for arg in args if ":" in arg]) == 1:
+            raise Exception(parser.get_usage())
         if ":" in args[0]:
             options.mode = "GET"
             ssh, options.src = args[0].split(":")
@@ -52,8 +55,6 @@ class Scp(Ssh):
                 if options.login_name is None:
                     options.login_name = "root"
                 options.hostname = ssh
-        else:
-            raise Exception("cannot find any ssh command.")
         return options, args
 
     def run(self):

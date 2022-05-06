@@ -1,35 +1,37 @@
-# -*- coding: utf-8 -*-
-from abc import ABCMeta, abstractmethod
-from optparse import OptionParser
+# -*- coding:utf-8 -*-
+from subprocess import PIPE, Popen
 
-from shtools.utils.cmdline import CmdLine
-from shtools.utils.log import Logger
-
-logger = Logger("SHTools")
+from .abstract_cmd import AbstractCmd
 
 
-class Bash(metaclass=ABCMeta):
-    def __init__(self, cmdline=""):
-        self.logger = logger
-        self.parser = self.get_parser()
-        self.options, self.args = self.parse_args(self.cmdlineparse(cmdline))
+__all__ = ["bash"]
 
-    def cmdlineparse(self, cmdline):
-        return CmdLine.to_list(cmdline)
 
-    def print_help(self):
-        self.parser.print_help()
+class Result(object):
+    def __init__(self, exit_code: int, stdout: bytes = b"", stderr: bytes = b""):
+        self._exit_code = exit_code
+        self._stdout = stdout
+        self._stderr = stderr
 
-    def get_parser(self):
-        return OptionParser()
+    @property
+    def exit_code(self):
+        return self._exit_code
 
-    def parse_args(self, args):
-        return self.parser.parse_args(args)
+    @property
+    def stdout(self):
+        return self._stdout
 
-    # @abstractmethod
-    # def optparse(self, args):
-    #     pass
+    @property
+    def stderr(self):
+        return self._stderr
 
-    @abstractmethod
+
+class bash(AbstractCmd):
+    def _cmdline_parse(self, cmdline):
+        return None, [cmdline]
+
     def run(self):
-        pass
+        process = Popen(self.args[0], stdout=PIPE, stderr=PIPE, shell=True)
+        stdout, stderr = process.communicate()
+        exit_code = process.poll()
+        return Result(exit_code=exit_code, stdout=stdout, stderr=stderr)

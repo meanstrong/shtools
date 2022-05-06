@@ -3,26 +3,30 @@ from optparse import OptionParser
 
 import pymongo
 
-from .bash import Bash
+from .abstract_cmd import AbstractCmd
 
+__all__ = ["mongo"]
 
-class Mongo(Bash):
-    def get_parser(self):
-        parser = OptionParser(usage="mongo [options...] [command]")
-        parser.add_option("--port", action="store", type="int", dest="port", default=27017, help="port to connect to")
-        parser.add_option("--host", action="store", dest="host", default="127.0.0.1", help="server to connect to")
-        parser.add_option(
-            "-u", "--username", action="store", dest="username", default=None, help="username for authentication"
-        )
-        parser.add_option(
-            "-p", "--password", action="store", dest="password", default=None, help="password for authentication"
-        )
-        parser.add_option("--database", action="store", dest="database", default="", help="database")
-        return parser
+parser = OptionParser(usage="mongo [options...] [command]")
+parser.add_option("--port", action="store", type="int", dest="port", default=27017, help="port to connect to")
+parser.add_option("--host", action="store", dest="host", default="127.0.0.1", help="server to connect to")
+parser.add_option("-u", "--username", action="store", dest="username", default=None, help="username for authentication")
+parser.add_option("-p", "--password", action="store", dest="password", default=None, help="password for authentication")
+parser.add_option("--database", action="store", dest="database", default="", help="database")
 
-    def parse_args(self, args):
-        options, args = super().parse_args(args)
-        # args = " ".join(args)
+class Result(object):
+    def __init__(self, result):
+        self._result = result
+
+    @property
+    def result(self):
+        return self._result
+
+class mongo(AbstractCmd):
+    __option_parser__ = parser
+
+    def _cmdline_parse(self, cmdline):
+        options, args = super()._cmdline_parse(cmdline)
         if ":" in args[0]:
             options.host, options.database = args[0].split("/")
             options.host, options.port = options.host.split(":")
@@ -47,4 +51,4 @@ class Mongo(Bash):
             db.authenticate(self.options.username, self.options.password, mechanism="SCRAM-SHA-1")
         result = eval(self.args[0])
         conn.close()
-        return result
+        return Result(result)
