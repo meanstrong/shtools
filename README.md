@@ -5,7 +5,7 @@
 [![image](https://img.shields.io/pypi/l/shtools.svg)](https://pypi.org/project/shtools/)
 
 ## About
-纯Python实现的一些bash命令工具集合.
+纯Python实现的一些CLI命令工具集合.
 
 ## Requirements
 - Python3
