@@ -41,6 +41,6 @@ from shtools.bash.mysql import mysql
 mysql.print_help()
 
 # run
-cmd = mysql('-h 127.0.0.1 -P 3306 -u root -p ****** -D database -e "SELECT * FROM table"')
-result = cmd.run()
+with mysql('-h 127.0.0.1 -P 3306 -u root -p ****** -D database') as client:
+    result = client.execute("SELECT * FROM table")
 ```
