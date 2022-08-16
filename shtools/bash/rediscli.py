@@ -65,6 +65,10 @@ class Rediscli(AbstractCmd):
                 startup_nodes=nodes, password=self.options.password, decode_responses=True
             )
 
+    def close(self):
+        with self.client:
+            pass
+
     def execute(self, command):
         result = self.client.execute_command(command)
         return Result(result)
@@ -74,5 +78,4 @@ class Rediscli(AbstractCmd):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        with self.client:
-            pass
+        self.close()

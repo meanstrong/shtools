@@ -61,6 +61,10 @@ class mysql(AbstractCmd):
             db=self.options.database,
             charset=self.options.charset,
         )
+
+    def close(self):
+        with self.client:
+            pass
     
     def execute(self, command):
         self.client.execute(command)
@@ -72,5 +76,4 @@ class mysql(AbstractCmd):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        with self.client:
-            pass
+        self.close()

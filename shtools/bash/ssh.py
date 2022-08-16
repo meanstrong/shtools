@@ -56,8 +56,8 @@ class Result(object):
 class ssh(AbstractCmd):
     __option_parser__ = parser
 
-    def _cmdline_parse(self, cmdline):
-        options, args = super()._cmdline_parse(cmdline)
+    def _parse_args(self, cmdline):
+        options, args = super()._parse_args(cmdline)
         if len(args) > 0:
             if "@" in args[0]:
                 options.login_name, options.hostname = args[0].split("@")
@@ -95,6 +95,10 @@ class ssh(AbstractCmd):
         self.client = client
         self.transport = self.client.get_transport()
 
+    def close(self):
+        self.transport.close()
+        self.client.close()
+
     def sshJump(self, jumpInfo):
         transport = self.client.get_transport()
         dst_address = (jumpInfo["hostname"], jumpInfo.get("port", 22))
@@ -115,7 +119,7 @@ class ssh(AbstractCmd):
         self.transport = self.client.get_transport()
 
     def execute(self, command):
-        channel = self.client.get_transport().open_session()
+        channel = self.getChannel()
         channel.exec_command(command)
         result = self.refreshBuffer(channel)
         return result
@@ -150,5 +154,4 @@ class ssh(AbstractCmd):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.transport.close()
-        self.client.close()
+        self.close()

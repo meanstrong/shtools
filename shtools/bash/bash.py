@@ -27,7 +27,7 @@ class Result(object):
 
 
 class bash(AbstractCmd):
-    def _cmdline_parse(self, cmdline):
+    def _parse_args(self, cmdline):
         return None, [cmdline]
 
     def run(self):

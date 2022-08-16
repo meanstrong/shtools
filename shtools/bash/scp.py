@@ -30,8 +30,8 @@ parser.add_option(
 class scp(ssh):
     __option_parser__ = parser
 
-    def _cmdline_parse(self, cmdline):
-        options, args = self.__option_parser__.parse_args(CmdLine.to_list(cmdline))
+    def _parse_args(self, cmdline):
+        options, args = self.__option_parser__.parse_args(self._get_args(cmdline))
 
         if len(args) != 2 or sum([1 for arg in args if ":" in arg]) == 1:
             raise Exception(parser.get_usage())
@@ -57,13 +57,9 @@ class scp(ssh):
                 options.hostname = ssh
         return options, args
 
-    def run(self):
-        self.connect()
+    def execute(self):
         sftp = paramiko.SFTPClient.from_transport(self.transport)
         if self.options.mode == "GET":
             sftp.get(self.options.src, self.options.dst)
         else:
             sftp.put(self.options.src, self.options.dst)
-        self.transport.close()
-        self.client.close()
-        return

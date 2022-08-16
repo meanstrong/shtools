@@ -25,8 +25,8 @@ class Result(object):
 class mongo(AbstractCmd):
     __option_parser__ = parser
 
-    def _cmdline_parse(self, cmdline):
-        options, args = super()._cmdline_parse(cmdline)
+    def _parse_args(self, cmdline):
+        options, args = super()._parse_args(cmdline)
         if ":" in args[0]:
             options.host, options.database = args[0].split("/")
             options.host, options.port = options.host.split(":")
@@ -50,6 +50,10 @@ class mongo(AbstractCmd):
             self.db = self.client[self.options.database]
             self.db.authenticate(self.options.username, self.options.password, mechanism="SCRAM-SHA-1")
 
+    def close(self):
+        with self.client:
+            pass
+
     def execute(self, command):
         result = eval(command, {"db": self.db})
         return Result(result)
@@ -59,5 +63,4 @@ class mongo(AbstractCmd):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        with self.client:
-            pass
+        self.close()

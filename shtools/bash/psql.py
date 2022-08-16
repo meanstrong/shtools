@@ -68,6 +68,10 @@ class psql(AbstractCmd):
         )
         self.cur = self.conn.cursor()
 
+    def close(self):
+        self.cur.close()
+        self.conn.close()
+
     def execute(self, command):
         self.cur.execute(command)
         self.conn.commit()
@@ -79,5 +83,4 @@ class psql(AbstractCmd):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.cur.close()
-        self.conn.close()
+        self.close()
