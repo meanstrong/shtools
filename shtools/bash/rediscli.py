@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-import time
 from optparse import OptionParser
 
 import redis
@@ -48,9 +47,8 @@ class Result(object):
 class Rediscli(AbstractCmd):
     __option_parser__ = parser
 
-    def run(self):
-        result = None
-        conn = redis.Redis(
+    def connect(self):
+        self.client = redis.Redis(
             host=self.options.hostname,
             port=self.options.port,
             password=self.options.password,
@@ -58,16 +56,23 @@ class Rediscli(AbstractCmd):
             decode_responses=True,
         )
         if self.options.cluster_mode:
-            out = conn.execute_command("cluster nodes")
+            out = self.client.execute_command("cluster nodes")
             nodes = []
             for line in out.strip().split("\n"):
                 host, port = line.split()[1].split(":")
                 nodes.append({"host": host, "port": port})
-            conn = rediscluster.StrictRedisCluster(
+            self.client = rediscluster.StrictRedisCluster(
                 startup_nodes=nodes, password=self.options.password, decode_responses=True
             )
 
-        for _ in range(self.options.repeat):
-            result = conn.execute_command(*self.args)
-            time.sleep(self.options.interval)
+    def execute(self, command):
+        result = self.client.execute_command(command)
         return Result(result)
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        with self.client:
+            pass

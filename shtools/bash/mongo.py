@@ -40,15 +40,24 @@ class mongo(AbstractCmd):
             args = ""
         return options, args
 
-    def run(self):
-        conn = pymongo.MongoClient(host=self.options.host, port=self.options.port)
-        db = conn[self.options.database]
-        db.authenticate(self.options.username, self.options.password, mechanism="SCRAM-SHA-1")
-        master = db.command("ismaster")
+    def connect(self):
+        self.client = pymongo.MongoClient(host=self.options.host, port=self.options.port)
+        self.db = self.client[self.options.database]
+        self.db.authenticate(self.options.username, self.options.password, mechanism="SCRAM-SHA-1")
+        master = self.db.command("ismaster")
         if not master["ismaster"]:
-            conn = pymongo.MongoClient(host=master["primary"])
-            db = conn[self.options.database]
-            db.authenticate(self.options.username, self.options.password, mechanism="SCRAM-SHA-1")
-        result = eval(self.args[0])
-        conn.close()
+            self.client = pymongo.MongoClient(host=master["primary"])
+            self.db = self.client[self.options.database]
+            self.db.authenticate(self.options.username, self.options.password, mechanism="SCRAM-SHA-1")
+
+    def execute(self, command):
+        result = eval(command, {"db": self.db})
         return Result(result)
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        with self.client:
+            pass

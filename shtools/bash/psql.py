@@ -58,20 +58,26 @@ class Result(object):
 class psql(AbstractCmd):
     __option_parser__ = parser
 
-    def run(self):
-        result = None
-        conn = psycopg2.connect(
+    def connect(self):
+        self.conn = psycopg2.connect(
             host=self.options.host,
             port=self.options.port,
             user=self.options.username,
             password=self.options.password,
             database=self.options.dbname,
         )
-        cur = conn.cursor()
-        cur.execute(self.options.command)
-        conn.commit()
-        if self.options.command.lower().startswith("select"):
-            result = cur.fetchall()
-        cur.close()
-        conn.close()
+        self.cur = self.conn.cursor()
+
+    def execute(self, command):
+        self.cur.execute(command)
+        self.conn.commit()
+        result = self.cur.fetchall()
         return Result(result)
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.cur.close()
+        self.conn.close()

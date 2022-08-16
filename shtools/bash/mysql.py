@@ -52,16 +52,25 @@ class Result(object):
 class mysql(AbstractCmd):
     __option_parser__ = parser
 
-    def run(self):
-        result = None
-        with pymysql.connect(
+    def connect(self):
+        self.client = pymysql.connect(
             host=self.options.host,
             port=self.options.port,
             user=self.options.user,
             passwd=self.options.password,
             db=self.options.database,
             charset=self.options.charset,
-        ) as cur:
-            cur.execute(self.options.execute)
-            result = cur.fetchall()
+        )
+    
+    def execute(self, command):
+        self.client.execute(command)
+        result = self.client.fetchall()
         return Result(result)
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        with self.client:
+            pass

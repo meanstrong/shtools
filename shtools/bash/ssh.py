@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import socket
 import time
 from optparse import OptionParser
 
@@ -59,12 +58,13 @@ class ssh(AbstractCmd):
 
     def _cmdline_parse(self, cmdline):
         options, args = super()._cmdline_parse(cmdline)
-        if "@" in args[0]:
-            options.login_name, options.hostname = args[0].split("@")
-        else:
-            if options.login_name is None:
-                options.login_name = "root"
-            options.hostname = args[0]
+        if len(args) > 0:
+            if "@" in args[0]:
+                options.login_name, options.hostname = args[0].split("@")
+            else:
+                if options.login_name is None:
+                    options.login_name = "root"
+                options.hostname = args[0]
         if len(args) <= 1:
             args = ""
         elif len(args) == 2:
@@ -144,3 +144,11 @@ class ssh(AbstractCmd):
         while channel.recv_stderr_ready():
             stderr += channel.recv_stderr(bufsize)
         return Result(exit_code=exit_code, stdout=stdout, stderr=stderr)
+
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.transport.close()
+        self.client.close()
