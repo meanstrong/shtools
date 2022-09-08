@@ -54,6 +54,9 @@ class mongo(AbstractCmd):
         with self.client:
             pass
 
+    def run(self):
+        return self.execute(self.args[0])
+
     def execute(self, command):
         result = eval(command, {"db": self.db})
         return Result(result)

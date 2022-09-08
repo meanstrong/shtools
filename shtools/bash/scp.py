@@ -57,7 +57,7 @@ class scp(ssh):
                 options.hostname = ssh
         return options, args
 
-    def execute(self):
+    def run(self):
         sftp = paramiko.SFTPClient.from_transport(self.transport)
         if self.options.mode == "GET":
             sftp.get(self.options.src, self.options.dst)

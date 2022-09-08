@@ -65,6 +65,9 @@ class mysql(AbstractCmd):
     def close(self):
         with self.client:
             pass
+
+    def run(self):
+        return self.execute(self.options.execute)
     
     def execute(self, command):
         self.client.execute(command)

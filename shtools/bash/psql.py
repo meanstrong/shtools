@@ -72,6 +72,9 @@ class psql(AbstractCmd):
         self.cur.close()
         self.conn.close()
 
+    def run(self):
+        return self.execute(self.options.command)
+
     def execute(self, command):
         self.cur.execute(command)
         self.conn.commit()

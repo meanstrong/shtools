@@ -69,6 +69,9 @@ class Rediscli(AbstractCmd):
         with self.client:
             pass
 
+    def run(self):
+        return self.execute(*self.args)
+
     def execute(self, command):
         result = self.client.execute_command(command)
         return Result(result)
