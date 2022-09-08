@@ -22,6 +22,7 @@ setup(
         "rediscli": ["redis", "rediscluster"],
         "scp": ["paramiko"],
         "ssh": ["paramiko"],
+        "kafka": ["kafka-python"],
     },
     url="https://github.com/meanstrong/shtools",
     description="some useful bash tools write in python",
