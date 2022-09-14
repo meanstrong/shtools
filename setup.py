@@ -33,7 +33,7 @@ setup(
     maintainer="pengmingqiang",
     maintainer_email="rockypengchina@outlook.com",
     platforms=['any'],
-    license="GPLv3",
+    license="Apache 2.0",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
