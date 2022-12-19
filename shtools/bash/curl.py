@@ -9,22 +9,8 @@ from .abstract_cmd import AbstractCmd
 __all__ = ["curl"]
 
 parser = OptionParser(usage="curl [options...] <url>")
-parser.add_option(
-    "-d",
-    "--data",
-    action="store",
-    dest="data",
-    default=None,
-    help="(HTTP) Sends the specified data in a POST request to the HTTP server",
-)
-parser.add_option(
-    "-H",
-    "--header",
-    action="store",
-    dest="header",
-    default=None,
-    help="(HTTP) Extra header to use when getting a web page.",
-)
+parser.add_option("-d", "--data", action="store", dest="data", default=None, help="(HTTP) Sends the specified data in a POST request to the HTTP server")
+parser.add_option("-H", "--header", action="store", dest="header", default=None, help="(HTTP) Extra header to use when getting a web page.")
 parser.add_option("-I", "--head", action="store_true", dest="head", default=False, help="Show document info only.")
 parser.add_option(
     "-k",
@@ -34,22 +20,9 @@ parser.add_option(
     default=False,
     help='(SSL) This option explicitly allows curl to perform "insecure" SSL connections and transfers.',
 )
-parser.add_option(
-    "-o",
-    "--output",
-    action="store",
-    dest="output",
-    default=None,
-    help="Write output to <file> instead of stdout.",
-)
-parser.add_option(
-    "-u",
-    "--user",
-    action="store",
-    dest="user",
-    default=None,
-    help="Specify the user name and password to use for server authentication.",
-)
+parser.add_option("-m", "--max-time", action="store", type="int", dest="timeout", default=30, help="Maximum time allowed for the transfer")
+parser.add_option("-o", "--output", action="store", dest="output", default=None, help="Write output to <file> instead of stdout.")
+parser.add_option("-u", "--user", action="store", dest="user", default=None, help="Specify the user name and password to use for server authentication.")
 parser.add_option("-x", "--proxy", action="store", dest="proxy", default=None, help="Use the specified HTTP proxy.")
 parser.add_option(
     "-X",
@@ -88,6 +61,7 @@ class curl(AbstractCmd):
             data=self.options.data,
             headers=headers,
             auth=self.options.user,
+            timeout=self.options.timeout,
             proxies=dict(http=self.options.proxy, https=self.options.proxy),
             verify=not self.options.insecure,
         )
