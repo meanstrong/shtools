@@ -38,6 +38,6 @@ class column(AbstractCmd):
         for row in rows:
             line: List[str] = []
             for i, field in enumerate(row):
-                line.append(str(field) + " " * (max_field_len[i] - len(str(field))))
+                line.append(str(field).ljust(max_field_len[i]))
             lines.append(self.options.output_separator.join(line))
         return "\n".join(lines)
