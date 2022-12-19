@@ -2,8 +2,6 @@
 from optparse import OptionParser
 from typing import List, Sequence
 
-import requests
-
 from .abstract_cmd import AbstractCmd
 
 
@@ -18,22 +16,8 @@ parser.add_option(
     action="store",
     dest="output_separator",
     default="  ",
-    help="table output column separator, default is two spaces",
+    help="table output column separator, default is two spaces"
 )
-
-
-class Result(object):
-    def __init__(self, status_code: int, content: bytes):
-        self._status_code = status_code
-        self._content = content
-
-    @property
-    def status_code(self):
-        return self._status_code
-
-    @property
-    def content(self):
-        return self._content
 
 
 class column(AbstractCmd):
@@ -44,16 +28,16 @@ class column(AbstractCmd):
             return self.to_string([[field for field in line.split(self.options.separator)] for line in self.args[0].splitlines()])
         return "\t".join(self.args[0].splitlines())
 
-    def to_string(self, rows: Sequence[Sequence[str]]):
+    def to_string(self, rows: Sequence[Sequence]):
         max_column_count = max(len(row) for row in rows)
         max_field_len = [0] * max_column_count
         for row in rows:
             for i, field in enumerate(row):
-                max_field_len[i] = max(max_field_len[i], len(field))
+                max_field_len[i] = max(max_field_len[i], len(str(field)))
         lines: List[str] = []
         for row in rows:
             line: List[str] = []
             for i, field in enumerate(row):
-                line.append(field + " " * (max_field_len[i] - len(field)))
+                line.append(str(field) + " " * (max_field_len[i] - len(str(field))))
             lines.append(self.options.output_separator.join(line))
         return "\n".join(lines)
