@@ -299,6 +299,9 @@ class Result(object):
     def packet_loss(self):
         return self._packet_loss
 
+    def __str__(self):
+        return f"{self._sent} packets transmitted, {self._received} received, {self._packet_loss}% packet loss"
+
 
 class ping(AbstractCmd):
     __option_parser__ = parser

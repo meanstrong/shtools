@@ -52,6 +52,9 @@ class Result(object):
     def stderr(self):
         return self._stderr
 
+    def __str__(self):
+        return f"<Exit [{self._exit_code}]>"
+
 
 class ssh(AbstractCmd):
     __option_parser__ = parser

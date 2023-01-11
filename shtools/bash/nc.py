@@ -51,6 +51,12 @@ class Result(object):
     def output(self):
         return self._output
 
+    def __str__(self):
+        if self._success:
+            return "OK"
+        else:
+            return f"error: {self._reason}"
+
 
 class nc(AbstractCmd):
     __option_parser__ = parser

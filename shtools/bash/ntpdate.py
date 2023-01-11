@@ -45,6 +45,12 @@ class Result(object):
     def offset(self):
         return self._offset
 
+    def __str__(self):
+        if self._success:
+            return f"adjust time server offset {self._offset} sec"
+        else:
+            return f"error: {self._reason}"
+
 
 class ntpdate(AbstractCmd):
     __option_parser__ = parser

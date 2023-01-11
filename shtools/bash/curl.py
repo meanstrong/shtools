@@ -47,6 +47,9 @@ class Result(object):
     def content(self):
         return self._content
 
+    def __str__(self):
+        return f"<Response [{self._status_code}]>"
+
 
 class curl(AbstractCmd):
     __option_parser__ = parser
