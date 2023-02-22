@@ -1,32 +1,49 @@
 # -*- coding: utf-8 -*-
 from optparse import OptionParser
-from typing import List, Sequence
+from typing import Any, List, Sequence, Union
 
 from .abstract_cmd import AbstractCmd
 
+__all__ = ["column"]
 
-__all__ = ["curl"]
-
-parser = OptionParser(usage="column [options] [input]")
+parser = OptionParser(usage="column [options...] --input input")
 parser.add_option("-t", "--table", action="store_true", dest="table", default=False, help="create a table")
-parser.add_option("-s", "--separator", action="store", dest="separator", default=None, help="possible table delimiters")
+parser.add_option("-s", "--separator", action="store", dest="separator", default=" ", help="possible table delimiters")
 parser.add_option(
-    "-o",
-    "--output-separator",
-    action="store",
-    dest="output_separator",
-    default="  ",
-    help="table output column separator, default is two spaces"
+    "-o", "--output-separator", action="store", dest="output_separator", default="  ", help="table output column separator, default is two spaces"
 )
+parser.add_option("--input", action="store", dest="input", default=None, help="input")
 
 
 class column(AbstractCmd):
     __option_parser__ = parser
 
+    def input(self, input: Union[str, Sequence[Any]], orient: str = "sequence"):
+        """输入指定数据
+
+        Args:
+            input (Union[str, Sequence[Any]]): 输入数据（可以是字符串或某种序列类型）
+            orient (str, optional): 当输入数据类型是某种序列时，指定序列内元素的类型（sequence/dict）. Defaults to "sequence".
+        """
+        self.options.input = input
+        self._orient = orient
+        return self
+
     def run(self):
-        if self.options.table:
-            return self.to_string([[field for field in line.split(self.options.separator)] for line in self.args[0].splitlines()])
-        return "\t".join(self.args[0].splitlines())
+        if not self.options.input:
+            return ""
+        if isinstance(self.options.input, str):
+            if self.options.table:
+                return self.to_string([[field for field in line.split(self.options.separator)] for line in self.options.input.splitlines()])
+            return "\t".join(self.options.input.splitlines())
+        if self._orient == "sequence":
+            return self.to_string(self.options.input)
+        if self._orient == "dict":
+            keys = list(self.options.input[0].keys())
+            data = [[i.get(k, "") for k in keys] for i in self.options.input]
+            data.insert(0, keys)
+            return self.to_string(data)
+        return str(self.options.input)
 
     def to_string(self, rows: Sequence[Sequence]):
         max_column_count = max(len(row) for row in rows)
@@ -41,3 +58,6 @@ class column(AbstractCmd):
                 line.append(str(field).ljust(max_field_len[i]))
             lines.append(self.options.output_separator.join(line))
         return "\n".join(lines)
+
+    def __str__(self) -> str:
+        return self.run()
