@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from optparse import OptionParser
-from typing import Any, List, Sequence, Union
+from typing import Any, List, Sequence, Union, Iterable
 
 from .abstract_cmd import AbstractCmd
 
@@ -18,7 +18,7 @@ parser.add_option("--input", action="store", dest="input", default=None, help="i
 class column(AbstractCmd):
     __option_parser__ = parser
 
-    def input(self, input: Union[str, Sequence[Any]], orient: str = "sequence"):
+    def input(self, input: Union[str, Iterable[Any]], orient: str = "sequence"):
         """输入指定数据
 
         Args:
@@ -39,13 +39,22 @@ class column(AbstractCmd):
         if self._orient == "sequence":
             return self.to_string(self.options.input)
         if self._orient == "dict":
-            keys = list(self.options.input[0].keys())
-            data = [[i.get(k, "") for k in keys] for i in self.options.input]
-            data.insert(0, keys)
-            return self.to_string(data)
+            keys = []
+            rows = []
+            for item in self.options.input:
+                row = []
+                for key in keys:
+                    row.append(item.get(key, ""))
+                for key in (i for i in item.keys() if i not in keys):
+                    keys.append(key)
+                    row.append(item.get(key, ""))
+                rows.append(row)
+            rows.insert(0, keys)
+            return self.to_string(rows)
         return str(self.options.input)
 
-    def to_string(self, rows: Sequence[Sequence]):
+    def to_string(self, rows: Iterable[Sequence]):
+        rows = tuple(rows)
         max_column_count = max(len(row) for row in rows)
         max_field_len = [0] * max_column_count
         for row in rows:
