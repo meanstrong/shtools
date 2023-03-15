@@ -26,6 +26,8 @@ class jq(AbstractCmd):
         return self
 
     def run(self):
+        if hasattr(self.options.input, "to_json"):
+            return self.options.input.to_json()
         return json.dumps(self.options.input, indent=self.options.indent, sort_keys=self.options.sort_keys)
 
     def __str__(self) -> str:
