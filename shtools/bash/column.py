@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from optparse import OptionParser
-from typing import Any, List, Sequence, Union, Iterable
+from typing import Any, Dict, Iterable, List, Sequence, Union
 
 from .abstract_cmd import AbstractCmd
 
@@ -23,7 +23,7 @@ class column(AbstractCmd):
 
         Args:
             input (Union[str, Sequence[Any]]): 输入数据（可以是字符串或某种序列类型）
-            orient (str, optional): 当输入数据类型是某种序列时，指定序列内元素的类型（sequence/dict）. Defaults to "sequence".
+            orient (str, optional): 当输入数据类型是某种序列时，指定序列内元素的类型（sequence/dict/to-dict）. Defaults to "sequence".
         """
         self.options.input = input
         self._orient = orient
@@ -34,26 +34,34 @@ class column(AbstractCmd):
             return ""
         if isinstance(self.options.input, str):
             if self.options.table:
-                return self.to_string([[field for field in line.split(self.options.separator)] for line in self.options.input.splitlines()])
+                return self.by_sequence([[field for field in line.split(self.options.separator)] for line in self.options.input.splitlines()])
             return "\t".join(self.options.input.splitlines())
         if self._orient == "sequence":
-            return self.to_string(self.options.input)
+            return self.by_sequence(self.options.input)
         if self._orient == "dict":
-            keys = []
-            rows = []
-            for item in self.options.input:
-                row = []
-                for key in keys:
-                    row.append(item.get(key, ""))
-                for key in (i for i in item.keys() if i not in keys):
-                    keys.append(key)
-                    row.append(item.get(key, ""))
-                rows.append(row)
-            rows.insert(0, keys)
-            return self.to_string(rows)
+            return self.by_dict(self.options.input)
+        if self._orient == "to-dict":
+            return self.by_to_dict(self.options.input)
         return str(self.options.input)
 
-    def to_string(self, rows: Iterable[Sequence]):
+    def by_to_dict(self, rows: Iterable):
+        return self.by_dict(i.to_dict() for i in rows)
+
+    def by_dict(self, dict_rows: Iterable[Dict]):
+        keys = []
+        rows = []
+        for item in dict_rows:
+            row = []
+            for key in keys:
+                row.append(item.get(key, ""))
+            for key in (i for i in item.keys() if i not in keys):
+                keys.append(key)
+                row.append(item.get(key, ""))
+            rows.append(row)
+        rows.insert(0, keys)
+        return self.by_sequence(rows)
+
+    def by_sequence(self, rows: Iterable[Sequence]):
         rows = tuple(rows)
         max_column_count = max(len(row) for row in rows)
         max_field_len = [0] * max_column_count
